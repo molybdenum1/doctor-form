@@ -39,9 +39,6 @@ function App() {
   const [cities, setCities] = useState<ICity[]>();
   const [specialties, setSpecialties] = useState<ISpecialty[]>();
   const [doctors, setDoctors] = useState<IDoctor[]>();
-  const today = new Date();
-
-  // console.log(cities);
 
   useEffect(() => {
     fetch("https://run.mocky.io/v3/3d1c993c-cd8e-44c3-b1cb-585222859c21")
@@ -73,7 +70,7 @@ function App() {
 
   const isAdult = (birthDate: string): boolean => {
     const today = new Date();
-    let birth = new Date(birthDate)
+    let birth = new Date(birthDate);
     let age = today.getFullYear() - birth.getFullYear();
     birth.setFullYear(today.getFullYear());
     if (today < birth) {
@@ -83,7 +80,6 @@ function App() {
   };
 
   // console.log(isAdult('2006/05/03'));
-  
 
   const validate = (values: IValues) => {
     const errors: IValues = {
@@ -146,8 +142,8 @@ function App() {
               Стать:
               <Field name="gender" as="select">
                 <option value="">Оберіть стать</option>
-                <option value="male">Чоловіча</option>
-                <option value="female">Жіноча</option>
+                <option value="Male">Чоловіча</option>
+                <option value="Female">Жіноча</option>
               </Field>
               {errors.gender && touched.gender && <div>{errors.gender}</div>}
             </label>
@@ -192,6 +188,11 @@ function App() {
                             (doctor) => doctor.name === values.doctor
                           )[0].specialityId
                       )
+                      .filter(
+                        (speciality) =>
+                         (values.gender && values.gender === 'Male')? speciality.parms?.gender === 'Male' && !speciality.parms
+                          : speciality.parms?.gender === 'Female' && !speciality.parms
+                      )
                       .map((speciality) => (
                         <option key={speciality.id} value={speciality.name}>
                           {speciality.name}
@@ -212,7 +213,7 @@ function App() {
               Лікар:
               <Field name="doctor" as="select">
                 <option value="">Оберіть лікаря</option>
-                {doctors && values.speciality && values.city
+                {doctors && values.speciality && values.city && values.birthDate
                   ? doctors
                       .filter(
                         (doctor) =>
@@ -231,16 +232,27 @@ function App() {
                                 specialty.name === values.speciality
                             )[0]?.id
                       )
+                      .filter((doctor) =>
+                        isAdult(values.birthDate)
+                          ? doctor
+                          : doctor.isPediatrician
+                      )
                       .map((doctor) => (
                         <option key={doctor.id} value={doctor.name}>
                           {doctor.name}
                         </option>
                       ))
-                  : doctors?.map((doctor) => (
-                      <option key={doctor.id} value={doctor.name}>
-                        {doctor.name}
-                      </option>
-                    ))}
+                  : doctors
+                      ?.filter((doctor) =>
+                        isAdult(values.birthDate)
+                          ? doctor
+                          : doctor.isPediatrician
+                      )
+                      .map((doctor) => (
+                        <option key={doctor.id} value={doctor.name}>
+                          {doctor.name}
+                        </option>
+                      ))}
               </Field>
               {errors.doctor && touched.doctor && <div>{errors.doctor}</div>}
             </label>
