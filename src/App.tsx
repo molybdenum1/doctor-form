@@ -71,15 +71,19 @@ function App() {
   const isAdult = (birthDate: string): boolean => {
     const today = new Date();
     let birth = new Date(birthDate);
+    // console.log(birth);
     let age = today.getFullYear() - birth.getFullYear();
     birth.setFullYear(today.getFullYear());
-    if (today < birth) {
-      age--;
-    }
-    return age >= 18;
+    // if (today < birth) {
+    //   age--;
+    // }
+    // console.log(age);
+    return age > 17
   };
 
-  // console.log(isAdult('2006/05/03'));
+
+
+  console.log(isAdult('2015-02-07'));
 
   const validate = (values: IValues) => {
     const errors: IValues = {
@@ -121,6 +125,7 @@ function App() {
         initialValues={initialValues}
         onSubmit={(values) => onSubmit(values)}
         validate={validate}
+
       >
         {({ errors, touched, values }) => (
           <Form>
@@ -152,25 +157,26 @@ function App() {
               Місто:
               <Field name="city" as="select">
                 <option value="">Оберіть місто</option>
-                {cities && values.doctor
-                  ? cities
-                      ?.filter(
-                        (city) =>
-                          city.id ===
-                          doctors?.filter(
-                            (doctor) => doctor.name === values.doctor
-                          )[0].cityId
-                      )
-                      .map((city) => (
+                {cities &&
+                  (values.doctor
+                    ? cities
+                        ?.filter(
+                          (city) =>
+                            city.id ===
+                            doctors?.filter(
+                              (doctor) => doctor.name === values.doctor
+                            )[0].cityId
+                        )
+                        .map((city) => (
+                          <option key={city.id} value={city.name}>
+                            {city.name}
+                          </option>
+                        ))
+                    : cities?.map((city) => (
                         <option key={city.id} value={city.name}>
                           {city.name}
                         </option>
-                      ))
-                  : cities?.map((city) => (
-                      <option key={city.id} value={city.name}>
-                        {city.name}
-                      </option>
-                    ))}
+                      )))}
               </Field>
               {errors.city && touched.city && <div>{errors.city}</div>}
             </label>
@@ -179,7 +185,8 @@ function App() {
               Спеціальність:
               <Field name="speciality" as="select">
                 <option value="">Оберіть спеціальність</option>
-                {specialties && values.doctor
+                {specialties && (
+                values.doctor
                   ? specialties
                       ?.filter(
                         (speciality) =>
@@ -187,11 +194,6 @@ function App() {
                           doctors?.filter(
                             (doctor) => doctor.name === values.doctor
                           )[0].specialityId
-                      )
-                      .filter(
-                        (speciality) =>
-                         (values.gender && values.gender === 'Male')? speciality.parms?.gender === 'Male' && !speciality.parms
-                          : speciality.parms?.gender === 'Female' && !speciality.parms
                       )
                       .map((speciality) => (
                         <option key={speciality.id} value={speciality.name}>
@@ -202,7 +204,8 @@ function App() {
                       <option key={speciality.id} value={speciality.name}>
                         {speciality.name}
                       </option>
-                    ))}
+                    ))
+                )}
               </Field>
               {errors.speciality && touched.speciality && (
                 <div>{errors.speciality}</div>
@@ -213,8 +216,11 @@ function App() {
               Лікар:
               <Field name="doctor" as="select">
                 <option value="">Оберіть лікаря</option>
-                {doctors && values.speciality && values.city && values.birthDate
-                  ? doctors
+                {doctors && (
+                  values.speciality ?
+                    values.city?
+                      values.birthDate?
+                      doctors
                       .filter(
                         (doctor) =>
                           doctor &&
@@ -242,8 +248,26 @@ function App() {
                           {doctor.name}
                         </option>
                       ))
-                  : doctors
-                      ?.filter((doctor) =>
+                      :
+                      doctors
+                      .filter(
+                        (doctor) =>
+                          doctor &&
+                          doctor.cityId ===
+                            cities?.filter(
+                              (city) => city.name === values.city
+                            )[0]?.id
+                      )
+                      .filter(
+                        (doctor) =>
+                          doctor &&
+                          doctor.specialityId ===
+                            specialties?.filter(
+                              (specialty) =>
+                                specialty.name === values.speciality
+                            )[0]?.id
+                      )
+                      .filter((doctor) =>
                         isAdult(values.birthDate)
                           ? doctor
                           : doctor.isPediatrician
@@ -252,7 +276,35 @@ function App() {
                         <option key={doctor.id} value={doctor.name}>
                           {doctor.name}
                         </option>
-                      ))}
+                      ))
+                    :
+                    doctors
+                      .filter(
+                        (doctor) =>
+                          doctor &&
+                          doctor.specialityId ===
+                            specialties?.filter(
+                              (specialty) =>
+                                specialty.name === values.speciality
+                            )[0]?.id
+                      )
+                      .filter((doctor) =>
+                        isAdult(values.birthDate)
+                          ? doctor
+                          : doctor.isPediatrician
+                      )
+                      .map((doctor) => (
+                        <option key={doctor.id} value={doctor.name}>
+                          {doctor.name}
+                        </option>
+                      ))
+                  :
+                  doctors.map((doctor) => (
+                    <option key={doctor.id} value={doctor.name}>
+                      {doctor.name}
+                    </option>
+                  ))
+                )}
               </Field>
               {errors.doctor && touched.doctor && <div>{errors.doctor}</div>}
             </label>
@@ -264,6 +316,7 @@ function App() {
             </label>
             <br />
             <button type="submit">Записатись на прийом</button>
+            {values.birthDate}
           </Form>
         )}
       </Formik>
