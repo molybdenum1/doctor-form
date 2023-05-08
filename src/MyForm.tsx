@@ -1,38 +1,10 @@
 import { useEffect, useState } from "react";
 import "./App.css";
-
-interface IValues {
-  name: string;
-  birthDate: string;
-  gender: string;
-  city: string;
-  speciality: string;
-  doctor: string;
-  contact: string;
-}
-
-interface IDoctor {
-  id: string;
-  name: string;
-  surname: string;
-  specialityId: string;
-  isPediatrician: boolean;
-  cityId: string;
-}
-interface ICity {
-  id: string;
-  name: string;
-}
-interface ISpecialty {
-  id: string;
-  name: string;
-  parms?: IParams;
-}
-interface IParams {
-  gender?: string;
-  maxAge?: string;
-  minAge?: string;
-}
+import doctorService from "./services/doctor.service";
+import specialitiesService from "./services/specialities.service";
+import citiesService from "./services/cities.service";
+import { ICity, IDoctor, ISpecialty, IValues } from "./types";
+import validateForm from "./validation";
 
 function MyForm() {
   const [cities, setCities] = useState<ICity[]>();
@@ -40,17 +12,11 @@ function MyForm() {
   const [doctors, setDoctors] = useState<IDoctor[]>();
 
   useEffect(() => {
-    fetch("https://run.mocky.io/v3/3d1c993c-cd8e-44c3-b1cb-585222859c21")
-      .then((response) => response.json())
-      .then((data) => setDoctors(data));
-
-    fetch("https://run.mocky.io/v3/e8897b19-46a0-4124-8454-0938225ee9ca")
-      .then((response) => response.json())
-      .then((data) => setSpecialties(data));
-
-    fetch("https://run.mocky.io/v3/9fcb58ca-d3dd-424b-873b-dd3c76f000f4")
-      .then((response) => response.json())
-      .then((data) => setCities(data));
+    doctorService.getDoctors().then((response) => setDoctors(response.data));
+    specialitiesService
+      .getSpecialities()
+      .then((response) => setSpecialties(response.data));
+    citiesService.getCities().then((response) => setCities(response.data));
   }, []);
 
   const [name, setName] = useState("");
@@ -65,9 +31,10 @@ function MyForm() {
   const [filteredSpec, setFilteredSpec] = useState<ISpecialty[]>();
   const [filteredCities, setFilteredCities] = useState<ICity[]>();
 
+  const [errors, setErrors] = useState<IValues>();
+
   useEffect(() => {
     let docs = doctors;
-    let species = specialties;
 
     if (birthDate && !isAdult(birthDate)) {
       docs = docs?.filter((doctor) => doctor.isPediatrician);
@@ -82,22 +49,43 @@ function MyForm() {
     } else {
       docs = docs?.filter((doctor) => doctor);
     }
-    // console.log(docs);
-    console.log(gender);
-    
-    if(gender){
-       if(gender === 'Male'){
-        // console.log(gender === 'Male');
-        console.log(species?.filter(spec => spec.parms && spec.parms.gender === gender));
-        
-        // setFilteredSpec(specc)    
-       }
-       if(gender === 'Female'){
-        console.log(specialties?.filter(spec => spec.parms && spec.parms.gender === gender));
-       }
+
+    if (gender) {
+      if (gender === "Male") {
+        setFilteredSpec(
+          filteredSpec?.filter(
+            (spec) => !spec.params || spec.params.gender === gender
+          ) ||
+            specialties?.filter(
+              (spec) => !spec.params || spec.params.gender === gender
+            )
+        );
+        docs = docs?.filter((doc) =>
+          filteredSpec?.some((spec) => doc.specialityId === spec.id)
+        );
+        setFilteredCities(
+          cities?.filter((c) => docs?.some((doc) => doc.cityId === c.id))
+        );
+        // console.log(filteredSpec);
+      }
+      if (gender === "Female") {
+        setFilteredSpec(
+          filteredSpec?.filter(
+            (spec) => !spec.params || spec.params.gender === gender
+          ) ||
+            specialties?.filter(
+              (spec) => !spec.params || spec.params.gender === gender
+            )
+        );
+        docs = docs?.filter((doc) =>
+          filteredSpec?.some((spec) => doc.specialityId === spec.id)
+        );
+        setFilteredCities(
+          cities?.filter((c) => docs?.some((doc) => doc.cityId === c.id))
+        );
+        // console.log(filteredSpec);
+      }
     }
-    console.log(filteredSpec);
-    
 
     if (city) {
       docs = docs?.filter(
@@ -123,14 +111,14 @@ function MyForm() {
     if (doctor) {
       setFilteredCities(
         cities?.filter(
-          (c) =>
-            c.id === doctors?.filter((doc) => doc.id === doctor)[0].cityId
+          (c) => c.id === doctors?.filter((doc) => doc.id === doctor)[0].cityId
         )
       );
       setFilteredSpec(
         specialties?.filter(
           (spec) =>
-            spec.id === doctors?.filter((doc) => doc.id === doctor)[0].specialityId
+            spec.id ===
+            doctors?.filter((doc) => doc.id === doctor)[0].specialityId
         )
       );
     }
@@ -140,19 +128,52 @@ function MyForm() {
   const isAdult = (birthDate: string): boolean => {
     const today = new Date();
     let birth = new Date(birthDate);
-    // console.log(birth);
     let age = today.getFullYear() - birth.getFullYear();
     birth.setFullYear(today.getFullYear());
-    // if (today < birth) {
-    //   age--;
-    // }
-    // console.log(age);
     return age > 17;
+  };
+
+  const handleSubmit = (e: any) => {
+    e.preventDefault();
+    setErrors({
+      name: "",
+      birthDate: "",
+      gender: "",
+      city: "",
+      speciality: "",
+      doctor: "",
+      contact: "",
+    });
+    let data = { name, birthDate, gender, city, speciality, doctor, contact };
+
+    setErrors(validateForm(data));
+    if (!errors) {
+      setErrors({
+        name: "",
+        birthDate: "",
+        gender: "",
+        city: "",
+        speciality: "",
+        doctor: "",
+        contact: "",
+      });
+      console.log("Форма надіслана");
+      setName("");
+      setBirthDate("");
+      setGender("");
+      setCity("");
+      setSpeciality("");
+      setDoctor("");
+      setContact("");
+      setFilteredDoctors([]);
+      setFilteredCities([]);
+      setFilteredSpec([]);
+    }
   };
 
   return (
     <div className="App">
-      <form>
+      <form onSubmit={handleSubmit}>
         <label>
           Ім'я:
           <input
@@ -161,6 +182,7 @@ function MyForm() {
             value={name}
             onChange={(e) => setName(e.target.value)}
           />
+          <span>{errors?.name}</span>
         </label>
         <br />
         <label>
@@ -172,6 +194,7 @@ function MyForm() {
             onChange={(e) => setBirthDate(e.target.value)}
           />
         </label>
+        <span>{errors?.birthDate}</span>
         <br />
         <label>
           Стать:
@@ -185,6 +208,7 @@ function MyForm() {
             <option value="Female">Жіноча</option>
           </select>
         </label>
+        <span>{errors?.gender}</span>
         <br />
         <label>
           Місто:
@@ -208,6 +232,7 @@ function MyForm() {
                 )))}
           </select>
         </label>
+        <span>{errors?.city}</span>
         <br />
         <label>
           Спеціальність:
@@ -231,6 +256,7 @@ function MyForm() {
                 )))}
           </select>
         </label>
+        <span>{errors?.speciality}</span>
         <br />
         <label>
           Лікар:
@@ -256,6 +282,7 @@ function MyForm() {
                 )))}
           </select>
         </label>
+        <span>{errors?.doctor}</span>
         <br />
         <label>
           Електронна пошта або номер телефону:
@@ -266,6 +293,7 @@ function MyForm() {
             onChange={(e) => setContact(e.target.value)}
           />
         </label>
+        <span>{errors?.contact}</span>
         <br />
         <button type="submit">Записатись на прийом</button>
       </form>
