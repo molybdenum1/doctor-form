@@ -12,6 +12,7 @@ input {
 label {
   display: block;
   margin-bottom: 8px;
+  margin-right: 8px;
   font-size: 18px;
   font-weight: bold;
 }
@@ -32,27 +33,23 @@ button:hover {
   background-color: #0062cc;
 }
 
-select option {
+select {
+  
+  padding: 10px;
+  font-size: 16px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
   background-color: #fff;
   color: #333;
-  font-size: 16px;
+}
+
+option {
   padding: 10px;
+  font-size: 16px;
+  background-color: #fff;
+  color: #333;
 }
-
-select option:hover {
-  background-color: #eee;
-}
-
-select option::before {
-  content: "";
-  display: inline-block;
-  width: 10px;
-  height: 10px;
-  margin-right: 10px;
-  background-color: #999;
-  border-radius: 50%;
-}
-
-select option:checked::before {
-  background-color: #333;
+.error {
+  color: red;
+  font-size: 14px;
 }

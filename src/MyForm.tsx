@@ -19,14 +19,15 @@ function MyForm() {
     citiesService.getCities().then((response) => setCities(response.data));
   }, []);
 
-  const [name, setName] = useState("");
-  const [birthDate, setBirthDate] = useState("");
-  const [gender, setGender] = useState("");
-  const [city, setCity] = useState("");
-  const [speciality, setSpeciality] = useState("");
-  const [doctor, setDoctor] = useState("");
-  const [contact, setContact] = useState("");
-
+  const [formData, setFormData] = useState<IValues>({
+    name: "",
+    birthDate: "",
+    gender: "",
+    city: "",
+    speciality: "",
+    doctor: "",
+    contact: "",
+  });
   const [filteredDoctors, setFilteredDoctors] = useState<IDoctor[]>();
   const [filteredSpec, setFilteredSpec] = useState<ISpecialty[]>();
   const [filteredCities, setFilteredCities] = useState<ICity[]>();
@@ -36,7 +37,7 @@ function MyForm() {
   useEffect(() => {
     let docs = doctors;
 
-    if (birthDate && !isAdult(birthDate)) {
+    if (formData.birthDate && !isAdult(formData.birthDate)) {
       docs = docs?.filter((doctor) => doctor.isPediatrician);
       setFilteredCities(
         cities?.filter((c) => docs?.some((doc) => doc.cityId === c.id))
@@ -50,14 +51,14 @@ function MyForm() {
       docs = docs?.filter((doctor) => doctor);
     }
 
-    if (gender) {
-      if (gender === "Male") {
+    if (formData.gender) {
+      if (formData.gender === "Male") {
         setFilteredSpec(
           filteredSpec?.filter(
-            (spec) => !spec.params || spec.params.gender === gender
+            (spec) => !spec.params || spec.params.gender === formData.gender
           ) ||
             specialties?.filter(
-              (spec) => !spec.params || spec.params.gender === gender
+              (spec) => !spec.params || spec.params.gender === formData.gender
             )
         );
         docs = docs?.filter((doc) =>
@@ -68,13 +69,13 @@ function MyForm() {
         );
         // console.log(filteredSpec);
       }
-      if (gender === "Female") {
+      if (formData.gender === "Female") {
         setFilteredSpec(
           filteredSpec?.filter(
-            (spec) => !spec.params || spec.params.gender === gender
+            (spec) => !spec.params || spec.params.gender === formData.gender
           ) ||
             specialties?.filter(
-              (spec) => !spec.params || spec.params.gender === gender
+              (spec) => !spec.params || spec.params.gender === formData.gender
             )
         );
         docs = docs?.filter((doc) =>
@@ -87,10 +88,11 @@ function MyForm() {
       }
     }
 
-    if (city) {
+    if (formData.city) {
       docs = docs?.filter(
         (doctor) =>
-          doctor.cityId === cities?.filter((c) => c.name === city)[0].id
+          doctor.cityId ===
+          cities?.filter((c) => c.name === formData.city)[0].id
       );
       setFilteredSpec(
         specialties?.filter((spec) =>
@@ -98,32 +100,40 @@ function MyForm() {
         )
       );
     }
-    if (speciality) {
+    if (formData.speciality) {
       docs = docs?.filter(
         (doctor) =>
           doctor.specialityId ===
-          specialties?.filter((spec) => spec.name === speciality)[0].id
+          specialties?.filter((spec) => spec.name === formData.speciality)[0].id
       );
       setFilteredCities(
         cities?.filter((c) => docs?.some((doc) => doc.cityId === c.id))
       );
     }
-    if (doctor) {
+    if (formData.doctor) {
       setFilteredCities(
         cities?.filter(
-          (c) => c.id === doctors?.filter((doc) => doc.id === doctor)[0].cityId
+          (c) =>
+            c.id ===
+            doctors?.filter((doc) => doc.id === formData.doctor)[0].cityId
         )
       );
       setFilteredSpec(
         specialties?.filter(
           (spec) =>
             spec.id ===
-            doctors?.filter((doc) => doc.id === doctor)[0].specialityId
+            doctors?.filter((doc) => doc.id === formData.doctor)[0].specialityId
         )
       );
     }
     setFilteredDoctors(docs);
-  }, [city, speciality, birthDate, doctor, gender]);
+  }, [
+    formData.city,
+    formData.speciality,
+    formData.birthDate,
+    formData.doctor,
+    formData.gender,
+  ]);
 
   const isAdult = (birthDate: string): boolean => {
     const today = new Date();
@@ -131,6 +141,16 @@ function MyForm() {
     let age = today.getFullYear() - birth.getFullYear();
     birth.setFullYear(today.getFullYear());
     return age > 17;
+  };
+
+  const initialState = {
+    name: "",
+    birthDate: "",
+    gender: "",
+    city: "",
+    speciality: "",
+    doctor: "",
+    contact: "",
   };
 
   const handleSubmit = (e: any) => {
@@ -144,27 +164,12 @@ function MyForm() {
       doctor: "",
       contact: "",
     });
-    let data = { name, birthDate, gender, city, speciality, doctor, contact };
 
-    setErrors(validateForm(data));
+    setErrors(validateForm(formData));
     if (!errors) {
-      setErrors({
-        name: "",
-        birthDate: "",
-        gender: "",
-        city: "",
-        speciality: "",
-        doctor: "",
-        contact: "",
-      });
+      setErrors(initialState);
       console.log("Форма надіслана");
-      setName("");
-      setBirthDate("");
-      setGender("");
-      setCity("");
-      setSpeciality("");
-      setDoctor("");
-      setContact("");
+      setFormData(initialState);
       setFilteredDoctors([]);
       setFilteredCities([]);
       setFilteredSpec([]);
@@ -179,10 +184,10 @@ function MyForm() {
           <input
             name="name"
             type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
+            value={formData.name}
+            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
           />
-          <span>{errors?.name}</span>
+          <div className="error">{errors?.name}</div>
         </label>
         <br />
         <label>
@@ -190,32 +195,36 @@ function MyForm() {
           <input
             name="birthDate"
             type="date"
-            value={birthDate}
-            onChange={(e) => setBirthDate(e.target.value)}
+            value={formData.birthDate}
+            onChange={(e) =>
+              setFormData({ ...formData, birthDate: e.target.value })
+            }
           />
         </label>
-        <span>{errors?.birthDate}</span>
+        <div className="error">{errors?.birthDate}</div>
         <br />
         <label>
           Стать:
           <select
             name="gender"
-            value={gender}
-            onChange={(e) => setGender(e.target.value)}
+            value={formData.gender}
+            onChange={(e) =>
+              setFormData({ ...formData, gender: e.target.value })
+            }
           >
             <option value="">Оберіть стать</option>
             <option value="Male">Чоловіча</option>
             <option value="Female">Жіноча</option>
           </select>
         </label>
-        <span>{errors?.gender}</span>
+        <div className="error">{errors?.gender}</div>
         <br />
         <label>
           Місто:
           <select
             name="city"
-            value={city}
-            onChange={(e) => setCity(e.target.value)}
+            value={formData.city}
+            onChange={(e) => setFormData({ ...formData, city: e.target.value })}
           >
             <option value="">Оберіть місто</option>
             {(filteredCities &&
@@ -232,14 +241,16 @@ function MyForm() {
                 )))}
           </select>
         </label>
-        <span>{errors?.city}</span>
+        <div className="error">{errors?.city}</div>
         <br />
         <label>
           Спеціальність:
           <select
             name="speciality"
-            value={speciality}
-            onChange={(e) => setSpeciality(e.target.value)}
+            value={formData.speciality}
+            onChange={(e) =>
+              setFormData({ ...formData, speciality: e.target.value })
+            }
           >
             <option value="">Оберіть спеціальність</option>
             {(filteredSpec &&
@@ -256,14 +267,16 @@ function MyForm() {
                 )))}
           </select>
         </label>
-        <span>{errors?.speciality}</span>
+        <div className="error">{errors?.speciality}</div>
         <br />
         <label>
           Лікар:
           <select
             name="doctor"
-            value={doctor}
-            onChange={(e) => setDoctor(e.target.value)}
+            value={formData.doctor}
+            onChange={(e) =>
+              setFormData({ ...formData, doctor: e.target.value })
+            }
           >
             <option value="">Оберіть лікаря</option>
             {(filteredDoctors &&
@@ -282,18 +295,20 @@ function MyForm() {
                 )))}
           </select>
         </label>
-        <span>{errors?.doctor}</span>
+        <div className="error">{errors?.doctor}</div>
         <br />
         <label>
           Електронна пошта або номер телефону:
           <input
             name="contact"
             type="text"
-            value={contact}
-            onChange={(e) => setContact(e.target.value)}
+            value={formData.contact}
+            onChange={(e) =>
+              setFormData({ ...formData, contact: e.target.value })
+            }
           />
         </label>
-        <span>{errors?.contact}</span>
+        <div className="error">{errors?.contact}</div>
         <br />
         <button type="submit">Записатись на прийом</button>
       </form>
