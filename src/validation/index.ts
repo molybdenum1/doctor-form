@@ -35,11 +35,6 @@ function validateForm(values: IValues) {
     errors.city = "Оберіть місто";
   }
 
-  // Проверка специальности врача (необязательное поле)
-  if (values.speciality) {
-    errors.speciality = "Оберіть спеціальність з списку";
-  }
-
   // Проверка ФИО доктора (обязательное поле)
   if (!values.doctor) {
     errors.doctor = "Оберіть доктора";
