@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import "./App.css";
-import doctorService from "./services/doctor.service";
-import specialitiesService from "./services/specialities.service";
-import citiesService from "./services/cities.service";
-import { ICity, IDoctor, ISpecialty, IValues } from "./types";
-import validateForm from "./validation";
+import doctorService from "../services/doctor.service";
+import specialitiesService from "../services/specialities.service";
+import citiesService from "../services/cities.service";
+import { ICity, IDoctor, ISpecialty, IValues } from "../types";
+import validateForm from "../validation";
+import Error from "./ui/Error";
 
 function MyForm() {
   const [cities, setCities] = useState<ICity[]>();
@@ -187,7 +188,7 @@ function MyForm() {
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
           />
-          <div className="error">{errors?.name}</div>
+          <Error>{errors?.name  || ''}</Error>
         </label>
         <br />
         <label>
@@ -201,7 +202,7 @@ function MyForm() {
             }
           />
         </label>
-        <div className="error">{errors?.birthDate}</div>
+        <Error>{errors?.birthDate  || ''}</Error>
         <br />
         <label>
           Стать:
@@ -217,7 +218,7 @@ function MyForm() {
             <option value="Female">Жіноча</option>
           </select>
         </label>
-        <div className="error">{errors?.gender}</div>
+        <Error>{errors?.gender  || ''}</Error>
         <br />
         <label>
           Місто:
@@ -241,7 +242,7 @@ function MyForm() {
                 )))}
           </select>
         </label>
-        <div className="error">{errors?.city}</div>
+        <Error>{errors?.city || ''}</Error>
         <br />
         <label>
           Спеціальність:
@@ -267,7 +268,7 @@ function MyForm() {
                 )))}
           </select>
         </label>
-        <div className="error">{errors?.speciality}</div>
+        <Error>{errors?.speciality  || ''}</Error>
         <br />
         <label>
           Лікар:
@@ -295,7 +296,7 @@ function MyForm() {
                 )))}
           </select>
         </label>
-        <div className="error">{errors?.doctor}</div>
+        <Error>{errors?.doctor  || ''}</Error>
         <br />
         <label>
           Електронна пошта або номер телефону:
@@ -308,7 +309,7 @@ function MyForm() {
             }
           />
         </label>
-        <div className="error">{errors?.contact}</div>
+        <Error>{errors?.contact  || ''}</Error>
         <br />
         <button type="submit">Записатись на прийом</button>
       </form>
