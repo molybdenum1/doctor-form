@@ -129,6 +129,10 @@ function MyForm() {
     }
     setFilteredDoctors(docs);
   }, [
+    cities,
+    doctors,
+    filteredSpec,
+    specialties,
     formData.city,
     formData.speciality,
     formData.birthDate,
