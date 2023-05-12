@@ -1,5 +1,5 @@
 type Props = {
-    children: string | ReactElement
+    children: string
   }
 
 function Error({children}: Props) {

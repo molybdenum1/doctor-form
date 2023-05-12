@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import "./App.css";
+import "../App.css";
 import doctorService from "../services/doctor.service";
 import specialitiesService from "../services/specialities.service";
 import citiesService from "../services/cities.service";
